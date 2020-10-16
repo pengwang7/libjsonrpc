@@ -1,1 +1,1 @@
-# libjsonrpc
+# libjsonrpc over HTTP
