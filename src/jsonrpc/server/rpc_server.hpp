@@ -60,7 +60,7 @@ private:
 private:
     ServerConfiguration config_;
 
-	transport_server_ptr transport_server_;
+    transport_server_ptr transport_server_;
 
     std::shared_ptr<Dispatcher> dispatcher_;
 };
