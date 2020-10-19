@@ -35,14 +35,12 @@ namespace jsonrpc {
 Connection::Connection(asio::io_service& io_service, std::size_t max_streambuf_size, ConnectionManager& manager)
     : socket_(io_service), streambuf_(max_streambuf_size),
       steady_timer_(io_service), conn_manager_(manager) {
-
-}
-
-void Connection::start() {
     asio::ip::tcp::no_delay no_delay(true);
     socket_.set_option(no_delay);
     socket_.set_option(asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK>(true));
+}
 
+void Connection::start() {
     if (conn_manager_.protocol()) {
         asio::async_read_until(socket_, streambuf_, "\r\n\r\n",
             std::bind(&Connection::netSocketReadHandle, shared_from_this(),
@@ -117,7 +115,21 @@ void Connection::netSocketReadHandle(const asio::error_code& ec, std::size_t byt
     }
 
     if (data_length_ > bytes_additional) {
+        data_length_ -= bytes_additional;
+        asio::async_read(socket_, streambuf_, asio::transfer_exactly(data_length_),
+            [this, self = shared_from_this()](const asio::error_code& ec, std::size_t bytes_transferred) -> void {
+                if (!ec && bytes_transferred == data_length_) {
+                    Content content(streambuf_);
+                    std::string data = content.string();
 
+                    LOG(INFO) << "The http content: " << data;
+
+                    if (read_fn_) {
+                        read_fn_(shared_from_this(), data);
+                    }
+                }
+            }
+        );
     } else {
         std::string data = content.string();
 
@@ -143,6 +155,10 @@ void Connection::netSocketWriteHandle(const std::string& message) {
             if (!ec) {
                 if (write_complete_fn_ && (transport_length == bytes_transferred)) {
                     write_complete_fn_(self);
+                }
+
+                if (transport_length == bytes_transferred) {
+                    start();
                 }
             } else {
                 conn_manager_.stop(self);

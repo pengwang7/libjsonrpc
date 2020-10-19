@@ -2,6 +2,7 @@
 #include "io_service_pool.hpp"
 #include "transport_server.hpp"
 #include "connection_manager.hpp"
+#include "rpc_server.hpp"
 
 #include "glog/logging.h"
 

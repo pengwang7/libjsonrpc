@@ -1,10 +1,13 @@
 #ifndef __JSONRPC_UTILITY_HPP__
 #define __JSONRPC_UTILITY_HPP__
 
+#include <memory>
 #include <string>
 #include <sstream>
 #include <unordered_map>
 #include <algorithm>
+
+#include "jsoncpp/json.h"
 
 namespace jsonrpc {
 
@@ -81,6 +84,36 @@ public:
         }
 
         return message;
+    }
+};
+
+class Codec {
+public:
+    static std::string encode(const Json::Value& table) {
+        std::string res("");
+        if (table == Json::Value::null) {
+            return res;
+        }
+
+        std::ostringstream out;
+        Json::StreamWriterBuilder streamBuilder;
+        std::unique_ptr<Json::StreamWriter> streamWriter(streamBuilder.newStreamWriter());
+        streamWriter->write(table, &out);
+        res = out.str();
+
+        return res;
+    }
+
+    static int decode(const std::string str, Json::Value& table) {
+        JSONCPP_STRING errs;
+        Json::CharReaderBuilder charBuilder;
+        std::unique_ptr<Json::CharReader> charReader(charBuilder.newCharReader());
+        int res = charReader->parse(str.c_str(), str.c_str() + str.length(), &table, &errs);
+        if (!res || !errs.empty()) {
+            return -1;
+        }
+
+        return 0;
     }
 };
 

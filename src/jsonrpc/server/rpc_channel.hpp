@@ -1,7 +1,10 @@
-#ifndef __RPC_CHANNEL_HPP__
-#define __RPC_CHANNEL_HPP__
+#ifndef __JSONRPC_CHANNEL_HPP__
+#define __JSONRPC_CHANNEL_HPP__
 
+#include "utility.hpp"
 #include "callback.hpp"
+
+#include "glog/logging.h"
 
 namespace jsonrpc {
 
@@ -21,27 +24,29 @@ public:
 
 	}
 
-	void onMessage(const connection_ptr& conn, const char* message) {
-		printf("RpcChannel on message: %s\n", message);
+	void onRpcMessage(const connection_ptr& conn, std::string& message) {
+        LOG(INFO) << "The rpc message: " << message;
 
-        conn->send(message);
+        Json::Value table = Json::Value::null;
+        if (!Codec::decode(message, table)) {
+            onRpcRequest(table);
+        } else {
+            conn_->stop(false);
+        }
 	}
 
-	void onRpcMessage() {
-
+	void onRpcRequest(Json::Value& table) {
+        onRpcResponse(callMethod());
 	}
 
-	void onRpcRequest() {
-
-	}
-
-	void onRpcResponse() {
-
-	}
+    void onRpcResponse(const std::string& message) {
+        conn_->send(message);
+    }
 
 private:
-	void callMethod() {
-
+	std::string callMethod() {
+        // test
+        return std::string("");
 	}
 
 private:
@@ -52,4 +57,4 @@ private:
 
 } /* end namespace jsonrpc */
 
-#endif /* __RPC_CHANNEL_HPP__ */
+#endif /* __JSONRPC_CHANNEL_HPP__ */
