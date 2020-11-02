@@ -27,10 +27,15 @@
 
 #include <asio.hpp>
 
+#include "any.hpp"
 #include "content.hpp"
 #include "callback.hpp"
 
 namespace jsonrpc {
+
+enum CONN_STATE {
+
+};
 
 class SharedConstBuffer {
 public:
@@ -62,6 +67,8 @@ class Connection : public std::enable_shared_from_this<Connection>, private asio
 public:
     explicit Connection(asio::io_service& io_service, std::size_t max_streambuf_size, ConnectionManager& manager);
 
+    ~Connection();
+
 public:
     asio::ip::tcp::socket& socket() { return socket_; }
 
@@ -74,6 +81,14 @@ public:
     void send(std::string data);
 
 public:
+    void setContext(const any& context) {
+        context_ = context;
+    }
+
+    any& getContext() {
+        return context_;
+    }
+
     void setReadMessageCallback(const ReadMessageCallback& fn) {
         read_fn_ = fn;
     }
@@ -115,6 +130,8 @@ private:
     unsigned int timeout_seconds_;
 
     int32_t data_length_;
+
+    any context_;
 
     ConnectionCallback conn_fn_;
 

@@ -22,6 +22,8 @@
  * SOFTWARE.
  */
 
+#include <sys/prctl.h>
+
 #include <thread>
 #include <stdexcept>
 
@@ -49,6 +51,8 @@ void IOServicePool::run() {
     for (std::size_t i = 0; i < io_services_.size(); ++ i) {
         thread_ptr thread(new std::thread(
             [i, this]() -> void {
+                std::string thread_name = std::string("io-thread-") + std::to_string(i);
+                ::prctl(PR_SET_NAME, thread_name.c_str(), 0, 0, 0);
                 io_services_[i]->run();
             })
         );

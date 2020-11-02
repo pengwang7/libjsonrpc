@@ -35,13 +35,23 @@ namespace jsonrpc {
 Connection::Connection(asio::io_service& io_service, std::size_t max_streambuf_size, ConnectionManager& manager)
     : socket_(io_service), streambuf_(max_streambuf_size),
       steady_timer_(io_service), conn_manager_(manager) {
-    asio::ip::tcp::no_delay no_delay(true);
-    socket_.set_option(no_delay);
-    socket_.set_option(asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK>(true));
+
+}
+
+Connection::~Connection() {
+    LOG(INFO) << "The connection destroy";
+    stopSocketReadTimedout();
+
+    asio::error_code ec;
+    socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
+    socket_.close(ec);
 }
 
 void Connection::start() {
     if (conn_manager_.protocol()) {
+        asio::error_code ec;
+        asio::ip::tcp::no_delay no_delay(true);
+        socket_.set_option(no_delay, ec);
         asio::async_read_until(socket_, streambuf_, "\r\n\r\n",
             std::bind(&Connection::netSocketReadHandle, shared_from_this(),
             std::placeholders::_1, std::placeholders::_2));
@@ -58,14 +68,10 @@ void Connection::stop(bool internal) {
     }
 
     if (internal) {
-        asio::error_code ec;
-        socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
-        socket_.close(ec);
+        shared_from_this()->context_ = nullptr;
     } else {
         conn_manager_.stop(shared_from_this());
     }
-
-    stopSocketReadTimedout();
 }
 
 void Connection::send(const char* data, std::size_t n) {

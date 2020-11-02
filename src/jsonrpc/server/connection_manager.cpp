@@ -26,7 +26,7 @@
 
 #include "connection.hpp"
 #include "connection_manager.hpp"
-
+#include "glog/logging.h"
 namespace jsonrpc {
 
 ConnectionManager::ConnectionManager(bool http_protocol)
@@ -39,19 +39,23 @@ ConnectionManager::~ConnectionManager() {
 }
 
 void ConnectionManager::start(connection_ptr conn) {
+#if 0
     {
         std::lock_guard<std::mutex> lock(mutex_);
         connections_.insert(conn);
     }
-
+#endif
     conn->start();
 }
 
 void ConnectionManager::stop(connection_ptr conn) {
+#if 0
     {
         std::lock_guard<std::mutex> lock(mutex_);
         connections_.erase(conn);
     }
+#endif
+    LOG(INFO) << "The connection reference: " << conn.use_count();
 
     conn->stop(true);
 }

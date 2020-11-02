@@ -45,7 +45,7 @@ public:
     }
 
     ~RpcChannel() {
-
+        LOG(INFO) << "The rpc channel destroy";
     }
 
     void onRpcMessage(const connection_ptr& conn, std::string& message) {
@@ -55,22 +55,33 @@ public:
         if (!Codec::decode(message, table)) {
             onRpcRequest(table);
         } else {
-            conn_->stop(false);
+            conn->stop(false);
         }
     }
 
     void onRpcRequest(Json::Value& table) {
+        std::size_t id = table[RPC_ID].asInt();
+        std::string version = table[RPC_VERSION].asCString();
+        std::string call_method = table[RPC_METHOD].asCString();
+        Json::Value call_params = table[RPC_PARAMS];
+
+        LOG(INFO) << id;
+        LOG(INFO) << version;
+        LOG(INFO) << call_method;
+        //LOG(INFO) << call_params;
+
         onRpcResponse(callMethod());
     }
 
     void onRpcResponse(const std::string& message) {
+        Json::Value table = Json::Value::null;
         conn_->send(message);
     }
 
 private:
     std::string callMethod() {
         // test
-        return std::string("");
+        return std::string("jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj\n");
     }
 
 private:

@@ -24,7 +24,7 @@
 
 #include "connection.hpp"
 #include "transport_server.hpp"
-
+#include "glog/logging.h"
 namespace jsonrpc {
 
 TransportServer::TransportServer(ServerConfiguration& config) noexcept
@@ -72,14 +72,18 @@ void TransportServer::doSocketAccept() {
                 doSocketAccept();
             }
 
+            LOG(INFO) << "1doSocketAccept connection reference: " << conn.use_count();
+
             if (conn_fn_) {
                 conn_fn_(conn);
             }
 
+            LOG(INFO) << "2doSocketAccept connection reference: " << conn.use_count();
             conn->setReadMessageCallback(message_fn_);
             conn->setWriteCompleteCallback(write_complete_fn_);
             conn->setCloseCallback(closed_fn_);
 
+            LOG(INFO) << "3doSocketAccept connection reference: " << conn.use_count();
             conn_manager_.start(conn);
         }
     );

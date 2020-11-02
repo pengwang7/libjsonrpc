@@ -63,7 +63,7 @@ public:
     std::size_t max_streambuf_size = std::numeric_limits<std::size_t>::max();
 
     // Set to false to avoid binding the socket to an address that is already in use. Defaults to true.
-    bool reuse_address = true;    
+    bool reuse_address = true;
 };
 
 class TransportServer : private asio::noncopyable {

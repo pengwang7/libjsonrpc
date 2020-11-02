@@ -35,7 +35,12 @@
 
 namespace jsonrpc {
 
-#define STR_WHITESPACE " \t\n\r\v\f"
+#define RPC_ID          "id"
+#define RPC_METHOD      "method"
+#define RPC_PARAMS      "params"
+#define RPC_VERSION     "jsonrpc"
+
+#define STR_WHITESPACE  " \t\n\r\v\f"
 
 class RequestMessage {
 public:

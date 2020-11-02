@@ -78,7 +78,8 @@ private:
 
     void onConnection(const connection_ptr& conn) {
         rpc_channel_ptr channel(new RpcChannel(conn, dispatcher_));
-        transport_server_->setMessageCallback(std::bind(&RpcChannel::onRpcMessage, channel, std::placeholders::_1, std::placeholders::_2));
+        transport_server_->setMessageCallback(std::bind(&RpcChannel::onRpcMessage, channel.get(), std::placeholders::_1, std::placeholders::_2));
+        conn->setContext(channel);
     }
 
 private:
