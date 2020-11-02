@@ -58,6 +58,9 @@ public:
     // Timeout on content handling. Defaults to 300 seconds.
     int timeout_content = 300;
 
+    // Process open max file descriptor limit.
+    size_t fd_limits = 409600;
+
     // Maximum size of request stream buffer. Defaults to architecture maximum.
     // Reaching this limit will result in a message_size error code.
     std::size_t max_streambuf_size = std::numeric_limits<std::size_t>::max();

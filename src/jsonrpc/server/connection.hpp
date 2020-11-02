@@ -33,10 +33,6 @@
 
 namespace jsonrpc {
 
-enum CONN_STATE {
-
-};
-
 class SharedConstBuffer {
 public:
     typedef asio::const_buffer value_type;

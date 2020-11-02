@@ -22,14 +22,30 @@
  * SOFTWARE.
  */
 
+#include <sys/time.h>
+#include <sys/resource.h>
+
 #include "connection.hpp"
 #include "transport_server.hpp"
-#include "glog/logging.h"
+
 namespace jsonrpc {
 
 TransportServer::TransportServer(ServerConfiguration& config) noexcept
     : config_(config), io_service_pool_(config_.io_service_pool_size),
       acceptor_(io_service_pool_.getIOService()), conn_manager_(config_.use_http_protocol) {
+    // Set process open max file descriptor limit.
+    struct rlimit curr_limit, core_limit;
+    if (!getrlimit(RLIMIT_NOFILE, &curr_limit)) {
+        core_limit.rlim_cur = config_.fd_limits;
+        core_limit.rlim_max = config_.fd_limits;
+
+        if (setrlimit(RLIMIT_NOFILE, &core_limit) != 0) {
+            // Try raising just to the original when failed.
+            core_limit.rlim_cur = core_limit.rlim_max = curr_limit.rlim_max;
+            setrlimit(RLIMIT_NOFILE, &core_limit);
+        }
+    }
+
     // TransportServer bind and accept from server configuration.
     asio::ip::tcp::endpoint endpoint;
     if(config_.address.size() > 0) {
@@ -72,18 +88,14 @@ void TransportServer::doSocketAccept() {
                 doSocketAccept();
             }
 
-            LOG(INFO) << "1doSocketAccept connection reference: " << conn.use_count();
-
             if (conn_fn_) {
                 conn_fn_(conn);
             }
 
-            LOG(INFO) << "2doSocketAccept connection reference: " << conn.use_count();
             conn->setReadMessageCallback(message_fn_);
             conn->setWriteCompleteCallback(write_complete_fn_);
             conn->setCloseCallback(closed_fn_);
 
-            LOG(INFO) << "3doSocketAccept connection reference: " << conn.use_count();
             conn_manager_.start(conn);
         }
     );
