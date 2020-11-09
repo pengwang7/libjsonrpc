@@ -68,6 +68,7 @@ void Connection::stop(bool internal) {
     }
 
     if (internal) {
+        // The nullptr must be assigned, Otherwise the reference count will not be freed.
         shared_from_this()->context_ = nullptr;
     } else {
         conn_manager_.stop(shared_from_this());
